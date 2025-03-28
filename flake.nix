@@ -3,9 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
+    cwe_checker.url = "github:felix-ulonska/cwe_checker/feat/split_stack_mem";
   };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, cwe_checker }:
     let
       pkgs = nixpkgs.legacyPackages."x86_64-linux";
     in
@@ -15,6 +16,8 @@
           rustc
           cargo
           valgrind
+          croc
+          cwe_checker.outputs.packages.${system}.default
         ];
       };
     };

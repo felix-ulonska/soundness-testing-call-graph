@@ -3,6 +3,7 @@ pub mod valgrind;
 pub mod cwe_checker;
 use std::{ fs, path::{Path, PathBuf}};
 use chrono::Local;
+use cwe_checker::setup_hetzner_server;
 use valgrind::run_valgrind;
 
 use clap::Parser;
@@ -18,6 +19,8 @@ struct Cli {
 }
 
 fn main() {
+    setup_hetzner_server(PathBuf::from("/home/jabbi/Projects/masterarbeit/test_targets/stack_tests/global_func_ptr"));
+    return;
     let output_folder = Path::new("output");
     let date = Local::now();
     let output_folder = output_folder.join(Path::new(&date.format("%Y-%m-%d-%H-%M-%S").to_string()));

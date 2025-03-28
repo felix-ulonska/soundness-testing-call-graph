@@ -1,12 +1,47 @@
 {
   "nodes": {
+    "cwe_checker": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1743197465,
+        "narHash": "sha256-nTDUgG/hwQmkaufRIM2wv9a64icAjJezMD+wNS3nriQ=",
+        "owner": "felix-ulonska",
+        "repo": "cwe_checker",
+        "rev": "0db9432b7db4021279ffb033affa3cb6df86ab9e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "felix-ulonska",
+        "ref": "feat/split_stack_mem",
+        "repo": "cwe_checker",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1743106060,
-        "narHash": "sha256-f0dcSyahcEy+3xd/lDvyeY69ekVK3phYwZ4jzFGbZ64=",
+        "lastModified": 1733759999,
+        "narHash": "sha256-463SNPWmz46iLzJKRzO3Q2b0Aurff3U1n0nYItxq7jU=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "76d0c8be1156b6a197d7de68b5e9c928b16135f0",
+        "rev": "a73246e2eef4c6ed172979932bc80e1404ba2d56",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1743197077,
+        "narHash": "sha256-qhFJdym3V/A8+juRlAJe6MXTybXA9T3eJEr7+plgtHQ=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "c792a2ade6a4a46ae7e2b27c1c4399fdc640c58b",
         "type": "github"
       },
       "original": {
@@ -17,7 +52,8 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "cwe_checker": "cwe_checker",
+        "nixpkgs": "nixpkgs_2"
       }
     }
   },
