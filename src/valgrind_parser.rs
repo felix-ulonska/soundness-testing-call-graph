@@ -1,4 +1,4 @@
-use nom::{bytes::complete::{tag, take_until, take_while}, character::complete::{i64 as parsei64, line_ending, space0, space1}, combinator::{map, opt}, multi::many0, number::complete::hex_u32, sequence::{preceded, terminated, tuple}, IResult, Parser};
+use nom::{bytes::complete::{tag, take_until}, character::complete::{i64 as parsei64, line_ending, space0, space1}, combinator::{map, opt}, multi::many0, number::complete::hex_u32, sequence::{preceded, terminated}, IResult, Parser};
 use nom::sequence::delimited;
 
 
@@ -108,14 +108,9 @@ fn parse_costline(input: &str) -> IResult<&str, InstrCounter> {
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-    use nom::{bytes::streaming::tag, character::streaming::{self, line_ending, space0}, combinator::{map, map_res, opt}, multi::many0, number, sequence::preceded, IResult, Parser};
 
     #[test]
     fn test_add() {
-    let parse_result = opt(
-        preceded(space0, parse_no_newline_chars)
-    ).parse("asdfasf");
-        println!("{:#?}", parse_result);
         println!("{:#?}", parse_cfn_line("(23) fooo"));
     }
 }
