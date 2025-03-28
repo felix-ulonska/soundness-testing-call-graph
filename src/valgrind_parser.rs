@@ -1,0 +1,121 @@
+use nom::{bytes::complete::{tag, take_until, take_while}, character::complete::{i64 as parsei64, line_ending, space0, space1}, combinator::{map, opt}, multi::many0, number::complete::hex_u32, sequence::{preceded, terminated, tuple}, IResult, Parser};
+use nom::sequence::delimited;
+
+
+fn parse_paren_number(input: &str) -> IResult<&str, i64> {
+    delimited(tag("("), parsei64, tag(")")).parse(input)
+}
+
+fn parse_no_newline_chars(input: &str) -> IResult<&str, &str> {
+    take_until("\n").parse(input)
+}
+fn parse_till_eol(input: &str) -> IResult<&str, &str> {
+    terminated(
+        take_until("\n"),
+        line_ending,
+    ).parse(input)
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PositionName {
+    pub number: Option<i64>,
+    pub trailing: Option<String>,
+}
+
+fn parse_fn_line(input: &str) -> IResult<&str, PositionName> {
+    delimited(tag("fn="), parse_position_name, line_ending).parse(input)
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CfnLine {
+    pub position_name: PositionName,
+    pub instr: InstrCounter,
+}
+
+fn parse_cfn_line(input: &str) -> IResult<&str, CfnLine> {
+    let (input, position_name) = delimited(tag("cfn="), parse_position_name, line_ending).parse(input)?;
+    let (input, instr) = parse_calls_line(input)?;
+
+    Ok((input, CfnLine {
+        position_name,
+        instr
+    }))
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ValgrindLine {
+    FnLine(PositionName),
+    CfnLine(CfnLine),
+    InstrCounter(InstrCounter)
+} 
+
+fn parse_line(input: &str) -> IResult<&str, Option<ValgrindLine>> {
+    nom::branch::alt((
+        map(parse_costline, |val| Some(ValgrindLine::InstrCounter(val))),
+        map(parse_fn_line, |val| Some(ValgrindLine::FnLine(val))),
+        map(parse_cfn_line, |val| Some(ValgrindLine::CfnLine(val))),
+        map(parse_till_eol, |_| None)
+    )).parse(input)
+}
+
+pub fn parse_valgrind_file(input: &str) -> IResult<&str, Vec<ValgrindLine>> {
+    let (input, output) = many0(parse_line).parse(input)?;
+    Ok((input, output.iter().filter_map(|line| line.clone()).collect::<Vec<ValgrindLine>>()))
+}
+
+pub fn parse_position_name(input: &str) -> IResult<&str, PositionName> {
+    let (input, number) = opt(parse_paren_number).parse(input)?;
+    let (input, trailing) = opt(
+        preceded(space1, parse_no_newline_chars)
+    ).parse(input)?;
+
+    Ok((input, PositionName { number, trailing: trailing.and_then(|val| Some(val.to_string())) }))
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum InstrCounter {
+    Absolute(i64),
+    Relative(i64),
+    Same()
+}
+
+fn parse_subposition(input: &str) -> IResult<&str, InstrCounter> {
+    let plus = preceded(tag("+"), parsei64);
+    let minus = preceded(tag("-"), parsei64);
+    let absolute = preceded(tag("0x"), hex_u32);
+    let star = map(tag("*"), |_| InstrCounter::Same());
+
+    nom::branch::alt((
+        map(plus, InstrCounter::Relative),
+        map(minus, |val| InstrCounter::Relative(-val)),
+        map(absolute, |val| InstrCounter::Absolute(val.into())),
+        star,
+    )).parse(input)
+}
+
+fn parse_calls_line(input: &str) -> IResult<&str, InstrCounter> {
+    preceded((tag("calls="), parsei64, space1), parse_costline).parse(input)
+}
+
+fn parse_costline(input: &str) -> IResult<&str, InstrCounter> {
+    let (input, instr) = parse_subposition(input)?;
+    let (input, _) = space0(input)?;
+    let (input, _) = parse_till_eol(input)?;
+    Ok((input, instr))
+}
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+    use nom::{bytes::streaming::tag, character::streaming::{self, line_ending, space0}, combinator::{map, map_res, opt}, multi::many0, number, sequence::preceded, IResult, Parser};
+
+    #[test]
+    fn test_add() {
+    let parse_result = opt(
+        preceded(space0, parse_no_newline_chars)
+    ).parse("asdfasf");
+        println!("{:#?}", parse_result);
+        println!("{:#?}", parse_cfn_line("(23) fooo"));
+    }
+}
