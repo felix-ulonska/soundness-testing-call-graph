@@ -5,11 +5,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1743202834,
-        "narHash": "sha256-7hbNMVB1zU+jDQVipAEgG+pvryBuKwi5omaiRBF5nZU=",
+        "lastModified": 1743279001,
+        "narHash": "sha256-STQupNUP4H0NXL62SleHHdOaHnB3tInraWC+fMwVc6I=",
         "ref": "refs/heads/feat/soudness-testing-api",
-        "rev": "d7d5c0f72fd748f07304986b1dbd853bc43314bc",
-        "revCount": 611,
+        "rev": "b39003d7f77dab693b45a73510c00903b3b743f4",
+        "revCount": 612,
         "type": "git",
         "url": "file:///home/jabbi/Projects/masterarbeit/cwe_checker"
       },
@@ -36,11 +36,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1743202632,
-        "narHash": "sha256-iuGkTlPKy4rx6zeB87sq7hWe9H4Ew/TRtgAGAQG4UKw=",
+        "lastModified": 1743278915,
+        "narHash": "sha256-zcFQbxfDdN8bg4yUfx4C16oYiYkKiyWS1GdS2CgsSWM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "4f079e9a23a24b838a4157f0b4e0ccec04ca452e",
+        "rev": "8fb60c58dd89a4dd7b0a835b2857867f04aa3753",
         "type": "github"
       },
       "original": {

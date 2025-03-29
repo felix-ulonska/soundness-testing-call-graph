@@ -6,12 +6,13 @@ pub struct RealCall {
     pub from_instr: u64,
     pub to_instr: u64,
     pub in_fn: i64,
-    pub target_fn: i64
+    pub target_fn: i64,
+    pub does_jump_object_file: bool,
 }
 
 impl Display for RealCall {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} -> {} @ {}", self.from_instr, self.to_instr, self.in_fn)
+        write!(f, "{:#x} -> {:#x} @ {}", self.from_instr, self.to_instr, self.in_fn)
     }
 }
 
@@ -65,7 +66,7 @@ pub fn run_valgrind(binary: &PathBuf, output_file: &PathBuf) -> ValgrindResult {
                     },
                     in_fn: curr_fn_index as i64,
                     target_fn: cfn.position_name.number.unwrap().try_into().unwrap(),
-
+                    does_jump_object_file: cfn.next_object_file.is_some()
                 });
             },
             ValgrindLine::InstrCounter(InstrCounter::Absolute(new_index)) => {curr_index = new_index},

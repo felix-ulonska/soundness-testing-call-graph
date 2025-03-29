@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, fs::{self, File}, io::{BufRead, BufReader, Write}, path::{Path, PathBuf}, process::{Command, Stdio}};
+use std::{collections::{HashMap, HashSet}, fmt::write, fs::{self, File}, io::{BufRead, BufReader, Write}, path::{Path, PathBuf}, process::{Command, Stdio}};
 
 use serde::{Deserialize, Serialize};
 
@@ -72,6 +72,8 @@ pub fn complete_analysis(binary: &PathBuf) -> CweCheckerResult {
 
 fn get_analysis_results(report: &PathBuf) -> ExportCallGraph {
     let content = fs::read_to_string(report).unwrap();
+    // Skip debug log. This is take the second last elemtn
+    let content = content.split('\n').rev().take(2).last().unwrap();
     let callgraph: ExportCallGraph = serde_json::from_str(&content).expect("JSON is bad");
     callgraph
 }

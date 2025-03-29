@@ -14,18 +14,17 @@ use clap::Parser;
 #[derive(Parser)]
 struct Cli {
     /// The pattern to look for
-    #[arg()]
     binary: PathBuf,
-    cwe_checker_results: PathBuf,
-    /// Use if the binary is small
-    run_cwe_checker: bool,
+    //cwe_checker_results: PathBuf,
+    ///// Use if the binary is small
+    //run_cwe_checker: bool,
 }
 
 fn main() {
-    
-    let bin_to_analyis = PathBuf::from("/nix/store/3p3fwczck2yn1wwfjnymzkz8w11vbvg7-gawk-5.3.1/bin/gawk");
-    setup_hetzner_server(bin_to_analyis);
-    return;
+    let args = Cli::parse();
+    //gawk: let bin_to_analyis = PathBuf::from("/nix/store/3p3fwczck2yn1wwfjnymzkz8w11vbvg7-gawk-5.3.1/bin/gawk");
+    //setup_hetzner_server(bin_to_analyis);
+    let bin_to_analyis = PathBuf::from(args.binary);
     let cwe_checker_results = complete_analysis(&bin_to_analyis);
     let output_folder = Path::new("output");
     let date = Local::now();

@@ -31,6 +31,8 @@ pub struct CfnLine {
     pub position_name: PositionName,
     pub target_instr: InstrCounter,
     pub from_instr: InstrCounter,
+    /// If some, the call jumps between object files
+    pub next_object_file: Option<PositionName>,
 }
 
 /// looks like this
@@ -38,6 +40,8 @@ pub struct CfnLine {
 /// calls=1 0x7b20 0 
 /// * 0 2935
 fn parse_cfn(input: &str) -> IResult<&str, CfnLine> {
+    let (input, next_object_file) = opt(delimited(tag("cob="), parse_position_name, line_ending)).parse(input)?;
+    let (input, _next_object_file_file) = opt(delimited(tag("cfi="), parse_position_name, line_ending)).parse(input)?;
     let (input, position_name) = delimited(tag("cfn="), parse_position_name, line_ending).parse(input)?;
     let (input, target_instr) = parse_calls_line(input)?;
     let (input, from_instr) = parse_costline(input)?;
@@ -45,7 +49,8 @@ fn parse_cfn(input: &str) -> IResult<&str, CfnLine> {
     Ok((input, CfnLine {
         position_name,
         target_instr,
-        from_instr
+        from_instr,
+        next_object_file
     }))
 }
 

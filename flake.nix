@@ -10,6 +10,15 @@
   outputs = { self, nixpkgs, cwe_checker }:
     let
       pkgs = nixpkgs.legacyPackages."x86_64-linux";
+      busybox-variants = import ./pkgs/busybox.nix { inherit pkgs; };
+      soundness-test-bins = pkgs.rustPlatform.buildRustPackage {
+        pname = "cwe_checker";
+        name = "cwe_checker";
+        src = ./.;
+        cargoLock = {
+          lockFile = ./Cargo.lock;
+        };
+      };
     in
     {
       devShell.x86_64-linux = pkgs.mkShell {
@@ -19,8 +28,10 @@
           valgrind
           croc
           cwe_checker.outputs.packages.${system}.default
+          busybox-variants.awk
         ];
       };
+      packages.x86_64-linux.default = soundness-test-bins;
     };
 }
 
