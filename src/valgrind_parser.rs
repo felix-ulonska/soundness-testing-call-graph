@@ -1,9 +1,9 @@
-use nom::{bytes::complete::{tag, take_until}, character::complete::{i64 as parsei64, line_ending, space0, space1}, combinator::{map, opt}, multi::many0, number::complete::hex_u32, sequence::{preceded, terminated}, IResult, Parser};
+use nom::{bytes::complete::{tag, take_until}, character::complete::{u64 as parseu64, line_ending, space0, space1}, combinator::{map, opt}, multi::many0, number::complete::hex_u32, sequence::{preceded, terminated}, IResult, Parser};
 use nom::sequence::delimited;
 
 
-fn parse_paren_number(input: &str) -> IResult<&str, i64> {
-    delimited(tag("("), parsei64, tag(")")).parse(input)
+fn parse_paren_number(input: &str) -> IResult<&str, u64> {
+    delimited(tag("("), parseu64, tag(")")).parse(input)
 }
 
 fn parse_no_newline_chars(input: &str) -> IResult<&str, &str> {
@@ -18,7 +18,7 @@ fn parse_till_eol(input: &str) -> IResult<&str, &str> {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PositionName {
-    pub number: Option<i64>,
+    pub number: Option<u64>,
     pub trailing: Option<String>,
 }
 
@@ -29,16 +29,23 @@ fn parse_fn_line(input: &str) -> IResult<&str, PositionName> {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CfnLine {
     pub position_name: PositionName,
-    pub instr: InstrCounter,
+    pub target_instr: InstrCounter,
+    pub from_instr: InstrCounter,
 }
 
-fn parse_cfn_line(input: &str) -> IResult<&str, CfnLine> {
+/// looks like this
+/// cfn=(122) _dl_map_object
+/// calls=1 0x7b20 0 
+/// * 0 2935
+fn parse_cfn(input: &str) -> IResult<&str, CfnLine> {
     let (input, position_name) = delimited(tag("cfn="), parse_position_name, line_ending).parse(input)?;
-    let (input, instr) = parse_calls_line(input)?;
+    let (input, target_instr) = parse_calls_line(input)?;
+    let (input, from_instr) = parse_costline(input)?;
 
     Ok((input, CfnLine {
         position_name,
-        instr
+        target_instr,
+        from_instr
     }))
 }
 
@@ -53,7 +60,7 @@ fn parse_line(input: &str) -> IResult<&str, Option<ValgrindLine>> {
     nom::branch::alt((
         map(parse_costline, |val| Some(ValgrindLine::InstrCounter(val))),
         map(parse_fn_line, |val| Some(ValgrindLine::FnLine(val))),
-        map(parse_cfn_line, |val| Some(ValgrindLine::CfnLine(val))),
+        map(parse_cfn, |val| Some(ValgrindLine::CfnLine(val))),
         map(parse_till_eol, |_| None)
     )).parse(input)
 }
@@ -74,27 +81,27 @@ pub fn parse_position_name(input: &str) -> IResult<&str, PositionName> {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InstrCounter {
-    Absolute(i64),
+    Absolute(u64),
     Relative(i64),
     Same()
 }
 
 fn parse_subposition(input: &str) -> IResult<&str, InstrCounter> {
-    let plus = preceded(tag("+"), parsei64);
-    let minus = preceded(tag("-"), parsei64);
+    let plus = preceded(tag("+"), parseu64);
+    let minus = preceded(tag("-"), parseu64);
     let absolute = preceded(tag("0x"), hex_u32);
     let star = map(tag("*"), |_| InstrCounter::Same());
 
     nom::branch::alt((
-        map(plus, InstrCounter::Relative),
-        map(minus, |val| InstrCounter::Relative(-val)),
+        map(plus, |val| InstrCounter::Relative(val as i64)),
+        map(minus, |val| InstrCounter::Relative(-(val as i64))),
         map(absolute, |val| InstrCounter::Absolute(val.into())),
         star,
     )).parse(input)
 }
 
 fn parse_calls_line(input: &str) -> IResult<&str, InstrCounter> {
-    preceded((tag("calls="), parsei64, space1), parse_costline).parse(input)
+    preceded((tag("calls="), parseu64, space1), parse_costline).parse(input)
 }
 
 fn parse_costline(input: &str) -> IResult<&str, InstrCounter> {
@@ -111,6 +118,6 @@ mod tests {
 
     #[test]
     fn test_add() {
-        println!("{:#?}", parse_cfn_line("(23) fooo"));
+        println!("{:#?}", parse_cfn("(23) fooo"));
     }
 }

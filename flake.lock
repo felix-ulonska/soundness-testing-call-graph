@@ -5,18 +5,17 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1743197465,
-        "narHash": "sha256-nTDUgG/hwQmkaufRIM2wv9a64icAjJezMD+wNS3nriQ=",
-        "owner": "felix-ulonska",
-        "repo": "cwe_checker",
-        "rev": "0db9432b7db4021279ffb033affa3cb6df86ab9e",
-        "type": "github"
+        "lastModified": 1743202834,
+        "narHash": "sha256-7hbNMVB1zU+jDQVipAEgG+pvryBuKwi5omaiRBF5nZU=",
+        "ref": "refs/heads/feat/soudness-testing-api",
+        "rev": "d7d5c0f72fd748f07304986b1dbd853bc43314bc",
+        "revCount": 611,
+        "type": "git",
+        "url": "file:///home/jabbi/Projects/masterarbeit/cwe_checker"
       },
       "original": {
-        "owner": "felix-ulonska",
-        "ref": "feat/split_stack_mem",
-        "repo": "cwe_checker",
-        "type": "github"
+        "type": "git",
+        "url": "file:///home/jabbi/Projects/masterarbeit/cwe_checker"
       }
     },
     "nixpkgs": {
@@ -37,11 +36,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1743197077,
-        "narHash": "sha256-qhFJdym3V/A8+juRlAJe6MXTybXA9T3eJEr7+plgtHQ=",
+        "lastModified": 1743202632,
+        "narHash": "sha256-iuGkTlPKy4rx6zeB87sq7hWe9H4Ew/TRtgAGAQG4UKw=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "c792a2ade6a4a46ae7e2b27c1c4399fdc640c58b",
+        "rev": "4f079e9a23a24b838a4157f0b4e0ccec04ca452e",
         "type": "github"
       },
       "original": {

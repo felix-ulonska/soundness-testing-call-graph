@@ -3,7 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
-    cwe_checker.url = "github:felix-ulonska/cwe_checker/feat/split_stack_mem";
+    #cwe_checker.url = "github:felix-ulonska/cwe_checker/feat/split_stack_mem";
+    cwe_checker.url = "/home/jabbi/Projects/masterarbeit/cwe_checker";
   };
 
   outputs = { self, nixpkgs, cwe_checker }:

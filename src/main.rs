@@ -1,9 +1,11 @@
 pub mod valgrind_parser;
 pub mod valgrind;
 pub mod cwe_checker;
+mod soudness_test;
 use std::{ fs, path::{Path, PathBuf}};
 use chrono::Local;
-use cwe_checker::setup_hetzner_server;
+use cwe_checker::{complete_analysis, setup_hetzner_server};
+use soudness_test::soundness;
 use valgrind::run_valgrind;
 
 use clap::Parser;
@@ -12,6 +14,7 @@ use clap::Parser;
 #[derive(Parser)]
 struct Cli {
     /// The pattern to look for
+    #[arg()]
     binary: PathBuf,
     cwe_checker_results: PathBuf,
     /// Use if the binary is small
@@ -19,8 +22,11 @@ struct Cli {
 }
 
 fn main() {
-    setup_hetzner_server(PathBuf::from("/home/jabbi/Projects/masterarbeit/test_targets/stack_tests/global_func_ptr"));
+    
+    let bin_to_analyis = PathBuf::from("/nix/store/3p3fwczck2yn1wwfjnymzkz8w11vbvg7-gawk-5.3.1/bin/gawk");
+    setup_hetzner_server(bin_to_analyis);
     return;
+    let cwe_checker_results = complete_analysis(&bin_to_analyis);
     let output_folder = Path::new("output");
     let date = Local::now();
     let output_folder = output_folder.join(Path::new(&date.format("%Y-%m-%d-%H-%M-%S").to_string()));
@@ -28,7 +34,8 @@ fn main() {
     let valgrind_output_file = output_folder.join(Path::new("valgrind.out"));
     fs::create_dir_all(output_folder).unwrap();
 
-    run_valgrind("/home/jabbi/Projects/masterarbeit/test_targets/stack_tests/global_func_ptr", &valgrind_output_file);
+    let valgrind_result = run_valgrind(&bin_to_analyis, &valgrind_output_file);
+    soundness(&cwe_checker_results, &valgrind_result);
 }
 
 
