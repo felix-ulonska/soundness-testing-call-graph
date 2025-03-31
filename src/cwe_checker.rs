@@ -80,8 +80,11 @@ fn get_analysis_results(report: &PathBuf) -> ExportCallGraph {
 
 pub fn run_cwe_checker(binary: &PathBuf, output_file: &PathBuf) {
     let output = Command::new("cwe-checker")
-        .args([binary])
+        .args(["--debug", "i-call-rec-vsa", binary.to_str().unwrap()])
         .output().expect("Failed exeucting cwe_checker");
+
+    //println!("stdout: {}", String::from_utf8(output.stdout.clone()).unwrap());
+    //println!("stderr: {}", String::from_utf8(output.stderr.clone()).unwrap());
 
     let json = output.stdout;
     let mut file = File::create(output_file).expect("Could not create output file");

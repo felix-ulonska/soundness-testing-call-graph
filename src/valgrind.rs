@@ -1,4 +1,13 @@
-use std::{collections::HashMap, fmt::Display, fs, path::PathBuf, process::Command};
+use std::process::Stdio;
+use std::{collections::HashMap, fmt::Display, fs, path::PathBuf};
+use std::time::Duration;
+use tokio::time::timeout;
+use tokio::process::Command;
+use nix::{
+    sys::signal::{kill, Signal::SIGTERM},
+    unistd::Pid,
+};
+
 use crate::valgrind_parser::{parse_valgrind_file, InstrCounter, PositionName, ValgrindLine};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -31,12 +40,28 @@ impl ValgrindResult {
     }
 }
 
-pub fn run_valgrind(binary: &PathBuf, output_file: &PathBuf) -> ValgrindResult {
+pub async fn run_valgrind(binary: &PathBuf, output_file: &PathBuf) -> ValgrindResult {
     let output_file_arg = format!("--callgrind-out-file={}", output_file.to_str().unwrap());
-    let output = Command::new("valgrind")
+    let mut child = Command::new("valgrind")
         .args(["--tool=callgrind", "--dump-instr=yes", &output_file_arg, "--collect-jumps=yes", binary.to_str().unwrap()])
-        .output();
-    output.expect("Valgrind failed");
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+
+    // Timeout after 20 seconds
+    let reached_timeout = timeout(Duration::from_secs(10),child.wait()).await.is_err();
+    if reached_timeout {
+        if let Some(pid) = child.id() {
+            // If the child hasn't already completed, send a SIGTERM.
+            if let Err(e) = kill(Pid::from_raw(pid.try_into().expect("Invalid PID")), SIGTERM) {
+                eprintln!("Failed to forward SIGTERM to child process: {}", e);
+            }
+        }
+        // Wait to get the child's exit code.
+        let _ignore = child.wait().await;
+    }
+
 
     let content = fs::read_to_string(output_file).unwrap();
     let valgrind_file = parse_valgrind_file(&content);
