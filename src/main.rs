@@ -4,7 +4,7 @@ pub mod cwe_checker;
 mod soudness_test;
 use std::{ fs, path::{Path, PathBuf}};
 use chrono::Local;
-use cwe_checker::{complete_analysis, parse_results_file, setup_hetzner_server};
+use cwe_checker::{complete_analysis, setup_hetzner_server};
 use soudness_test::soundness;
 use valgrind::run_valgrind;
 
@@ -26,8 +26,8 @@ async fn main() {
     //gawk: let bin_to_analyis = PathBuf::from("/nix/store/3p3fwczck2yn1wwfjnymzkz8w11vbvg7-gawk-5.3.1/bin/gawk");
     let bin_to_analyis = PathBuf::from(args.binary);
     //setup_hetzner_server(bin_to_analyis);
-    //let cwe_checker_results = complete_analysis(&bin_to_analyis);
-    let cwe_checker_results = parse_results_file(&bin_to_analyis);
+    let cwe_checker_results = complete_analysis(&bin_to_analyis);
+    //let cwe_checker_results = parse_results_file(&bin_to_analyis);
     let output_folder = Path::new("output");
     let date = Local::now();
     let output_folder = output_folder.join(Path::new(&date.format("%Y-%m-%d-%H-%M-%S").to_string()));
