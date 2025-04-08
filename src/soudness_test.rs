@@ -1,5 +1,7 @@
-use crate::{cwe_checker::CweCheckerResult, valgrind::ValgrindResult};
-
+use crate::{
+    cwe_checker::CweCheckerResult,
+    valgrind::{RealCall, ValgrindResult},
+};
 
 pub fn soundness(cwe_checker: &CweCheckerResult, real: &ValgrindResult) {
     let mut is_unsound = false;
@@ -7,12 +9,31 @@ pub fn soundness(cwe_checker: &CweCheckerResult, real: &ValgrindResult) {
     let mut real_calls = real.calls.clone();
     // We sort to have a function, by function analysis. It just nicer to read
     real_calls.sort_by_key(|call| call.from_instr);
-    let real_calls_from_prog_region = real.calls.iter().filter(|call| cwe_checker.metadata.indirect_call_sites.contains(&call.from_instr));
+    println!(
+        "indirect_call_sites {:?}",
+        cwe_checker
+            .metadata
+            .indirect_call_sites
+            .iter()
+            .map(|target| format!("{:x}", target))
+            .collect::<Vec<String>>()
+            .join(",")
+    );
+    let real_calls_from_prog_region = real
+        .calls
+        .iter()
+        .filter(|call| {
+            cwe_checker
+                .metadata
+                .indirect_call_sites
+                .contains(&call.from_instr)
+        })
+        .collect::<Vec<&RealCall>>();
 
     let mut current_function = -1;
     for call in real_calls_from_prog_region {
         if current_function != call.in_fn {
-            println!("=== Function: {:10} ===", real.get_function_of_call(call));
+            println!("=== Function: {:10} ===", real.get_function_of_call(&call));
             current_function = call.in_fn;
         }
 
@@ -27,10 +48,18 @@ pub fn soundness(cwe_checker: &CweCheckerResult, real: &ValgrindResult) {
             continue;
         };
         if callsite.has_target(&call.to_instr) {
-            println!("\t{:#x} -> {:#x} @ {}", call.from_instr, call.to_instr, real.get_target_function_of_call(call));
+            println!(
+                "\t{:#x} -> {:#x} @ {}",
+                call.from_instr,
+                call.to_instr,
+                real.get_target_function_of_call(&call)
+            );
         } else {
             is_unsound = true;
-            println!("\t[!] UNSOUND: {:#x} -> {:#x}", call.from_instr, call.to_instr);
+            println!(
+                "\t[!] UNSOUND: {:#x} -> {:#x}",
+                call.from_instr, call.to_instr
+            );
         }
     }
 

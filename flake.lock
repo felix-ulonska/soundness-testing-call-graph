@@ -1,0 +1,61 @@
+{
+  "nodes": {
+    "cwe_checker": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1743369606,
+        "narHash": "sha256-eg4mHYymNA5My4Fcp0L0XAn1PCwyObjbOItjsNgJcBk=",
+        "ref": "refs/heads/feat/split_stack_mem",
+        "rev": "522af74c13ae65353c0cd1ef226eda4e944bf6fa",
+        "revCount": 613,
+        "type": "git",
+        "url": "file:///home/jabbi/Projects/masterarbeit/cwe_checker"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:///home/jabbi/Projects/masterarbeit/cwe_checker"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1733759999,
+        "narHash": "sha256-463SNPWmz46iLzJKRzO3Q2b0Aurff3U1n0nYItxq7jU=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "a73246e2eef4c6ed172979932bc80e1404ba2d56",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1743590148,
+        "narHash": "sha256-Jp5RyvC6Wel7WfSjTi+pjIkufrSc/96L/1IFjrRdqiI=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "c509a0d7a8e76c8314f5806b857c35af28a44e9b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "cwe_checker": "cwe_checker",
+        "nixpkgs": "nixpkgs_2"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

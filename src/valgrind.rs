@@ -28,7 +28,7 @@ impl Display for RealCall {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ValgrindResult {
     pub calls: Vec<RealCall>,
-    valgrind_name_cache: ValgrindNameCache
+    pub valgrind_name_cache: ValgrindNameCache
 }
 
 impl ValgrindResult {
@@ -110,12 +110,12 @@ pub async fn run_valgrind(binary: &PathBuf, output_file: &PathBuf) -> ValgrindRe
 }
 
 #[derive(Eq, PartialEq, Debug, Clone)]
-struct ValgrindNameCache {
+pub struct ValgrindNameCache {
     name_cache: HashMap::<u64, String>
 }
 
 impl ValgrindNameCache {
-    fn new() -> ValgrindNameCache {
+    pub fn new() -> ValgrindNameCache {
         ValgrindNameCache {
             name_cache: HashMap::new()
         }

@@ -1,4 +1,11 @@
-use std::{collections::{HashMap, HashSet}, fmt::write, fs::{self, File}, io::{BufRead, BufReader, Write}, path::{Path, PathBuf}, process::{Command, Stdio}};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::write,
+    fs::{self, File},
+    io::{BufRead, BufReader, Write},
+    path::{Path, PathBuf},
+    process::{Command, Stdio},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +14,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Call {
     pub from_instr: u64,
-    pub to_instr: u64,
+    pub to_instr: Option<u64>,
     pub is_indirect: bool,
 }
 
@@ -26,7 +33,7 @@ pub struct ExportCallGraph {
 #[derive(Debug, Clone)]
 pub struct CallSite {
     pub callsite_loc: u64,
-    pub targets: HashSet::<u64>
+    pub targets: HashSet<u64>,
 }
 
 impl CallSite {
@@ -38,21 +45,26 @@ impl CallSite {
 #[derive(Debug, Clone)]
 pub struct CweCheckerResult {
     pub metadata: Metadata,
-    call_hash_map_by_call_site: HashMap::<u64, CallSite>,
+    call_hash_map_by_call_site: HashMap<u64, CallSite>,
 }
 
 impl CweCheckerResult {
     fn from_export_call_graph(export_call_graph: ExportCallGraph) -> Self {
         let mut call_hash_map_by_call_site = HashMap::new();
-        for call in export_call_graph.calls {
+        for call in &export_call_graph.calls {
             let callsite = call_hash_map_by_call_site
                 .entry(call.from_instr)
-                .or_insert(CallSite { callsite_loc: call.from_instr, targets: HashSet::new() });
-            callsite.targets.insert(call.to_instr);
+                .or_insert(CallSite {
+                    callsite_loc: call.from_instr,
+                    targets: HashSet::new(),
+                });
+            if let Some(target) = call.to_instr {
+                callsite.targets.insert(target);
+            }
         }
         CweCheckerResult {
             metadata: export_call_graph.metadata,
-            call_hash_map_by_call_site
+            call_hash_map_by_call_site,
         }
     }
 
@@ -67,21 +79,22 @@ pub fn complete_analysis(binary: &PathBuf) -> CweCheckerResult {
     fs::create_dir_all(output_folder).expect("Could not create output folder");
     let output_file = output_folder.join(Path::new(file_name_str));
     run_cwe_checker(binary, &output_file);
-    CweCheckerResult::from_export_call_graph(get_analysis_results(&output_file))
+    get_analysis_results(&output_file)
 }
 
-fn get_analysis_results(report: &PathBuf) -> ExportCallGraph {
+pub fn get_analysis_results(report: &PathBuf) -> CweCheckerResult {
     let content = fs::read_to_string(report).unwrap();
     // Skip debug log. This is take the second last elemtn
     let content = content.split('\n').rev().take(2).last().unwrap();
     let callgraph: ExportCallGraph = serde_json::from_str(&content).expect("JSON is bad");
-    callgraph
+    CweCheckerResult::from_export_call_graph(callgraph)
 }
 
 pub fn run_cwe_checker(binary: &PathBuf, output_file: &PathBuf) {
     let output = Command::new("cwe-checker")
         .args(["--debug", "i-call-rec-vsa", binary.to_str().unwrap()])
-        .output().expect("Failed exeucting cwe_checker");
+        .output()
+        .expect("Failed exeucting cwe_checker");
 
     //println!("stdout: {}", String::from_utf8(output.stdout.clone()).unwrap());
     //println!("stderr: {}", String::from_utf8(output.stderr.clone()).unwrap());
@@ -116,7 +129,7 @@ pub fn setup_hetzner_server(binary: PathBuf) {
 
     if let Some(stdout) = &mut child.stderr {
         let reader = BufReader::new(stdout);
-        let mut next_line_croc = false; 
+        let mut next_line_croc = false;
         for line in reader.lines() {
             let line = line.expect("Failed to read line");
             if next_line_croc {
