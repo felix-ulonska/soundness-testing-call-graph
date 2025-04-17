@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::process::Stdio;
 use std::{collections::HashMap, fmt::Display, fs, path::PathBuf};
 use std::time::Duration;
@@ -28,7 +29,9 @@ impl Display for RealCall {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ValgrindResult {
     pub calls: Vec<RealCall>,
-    pub valgrind_name_cache: ValgrindNameCache
+    pub valgrind_name_cache: ValgrindNameCache,
+    /// From: fn number to base_address
+    pub base_address_mapping: HashMap<u64, u64>
 }
 
 impl ValgrindResult {
@@ -62,12 +65,15 @@ pub async fn run_valgrind(binary: &PathBuf, output_file: &PathBuf) -> ValgrindRe
         let _ignore = child.wait().await;
     }
 
+    let mut base_address_mapping = HashMap::new();
+
 
     let content = fs::read_to_string(output_file).unwrap();
     let valgrind_file = parse_valgrind_file(&content);
     let mut valgrind_name_cache = ValgrindNameCache::new();
     let mut curr_index: u64 = 0;
     let mut curr_fn_index = 0;
+    let mut curr_fn_base_address_set = false;
 
     let mut calls = vec![];
     for line in valgrind_file.unwrap().1 {
@@ -75,6 +81,7 @@ pub async fn run_valgrind(binary: &PathBuf, output_file: &PathBuf) -> ValgrindRe
             ValgrindLine::FnLine(fn_) => {
                 valgrind_name_cache.add(&fn_);
                 curr_fn_index = fn_.number.unwrap();
+                curr_fn_base_address_set = false;
             }
             ValgrindLine::CfnLine(cfn) => {
                 valgrind_name_cache.add(&cfn.position_name);
@@ -94,24 +101,36 @@ pub async fn run_valgrind(binary: &PathBuf, output_file: &PathBuf) -> ValgrindRe
                     does_jump_object_file: cfn.next_object_file.is_some()
                 });
             },
-            ValgrindLine::InstrCounter(InstrCounter::Absolute(new_index)) => {curr_index = new_index},
-            ValgrindLine::InstrCounter(InstrCounter::Relative(relative)) => {curr_index = (curr_index as i64  + relative) as u64;},
+            ValgrindLine::InstrCounter(InstrCounter::Absolute(new_index)) => {
+                curr_index = new_index;
+                if !curr_fn_base_address_set {
+                    curr_fn_base_address_set = true;
+                    base_address_mapping.insert(curr_fn_index, new_index);
+                }
+            },
+            ValgrindLine::InstrCounter(InstrCounter::Relative(relative)) => {
+                curr_index = (curr_index as i64  + relative) as u64;
+                if !curr_fn_base_address_set {
+                    curr_fn_base_address_set = true;
+                    base_address_mapping.insert(curr_fn_index, curr_index);
+                }
+            },
             _ => ()
         }
+
     }
 
     //for call in &calls {
     //    println!("{} -> {} @ {}", call.from_instr, call.to_instr, valgrind_name_cache.get(call.in_fn.try_into().unwrap()));
     //}
-    //
     ValgrindResult {
-        calls, valgrind_name_cache
+        calls, valgrind_name_cache, base_address_mapping
     }
 }
 
 #[derive(Eq, PartialEq, Debug, Clone)]
 pub struct ValgrindNameCache {
-    name_cache: HashMap::<u64, String>
+    pub name_cache: HashMap::<u64, String>
 }
 
 impl ValgrindNameCache {

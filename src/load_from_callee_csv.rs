@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
 use nom::{bytes::tag, number::complete::hex_u32, sequence::preceded, IResult, Parser};
 
@@ -64,5 +64,6 @@ pub fn load_callee_from_csv(path: &PathBuf, binary_name: &str) -> ValgrindResult
     ValgrindResult {
         calls,
         valgrind_name_cache: ValgrindNameCache::new(),
+        base_address_mapping: HashMap::new()
     }
 }

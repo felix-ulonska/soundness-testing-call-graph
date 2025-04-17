@@ -18,10 +18,18 @@ pub struct Call {
     pub is_indirect: bool,
 }
 
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Function {
+    pub name: String,
+    pub address: u64,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Metadata {
     pub address_base_offset: u64,
     pub indirect_call_sites: Vec<u64>,
+    pub functions: Vec<Function>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
