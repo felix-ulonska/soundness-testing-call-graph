@@ -1,3 +1,10 @@
 /target
 output
 cwe_output
+*.csv
+cwe_output*
+cwe_results*
+foo
+result
+program_slicing
+.ipynb_checkpoints

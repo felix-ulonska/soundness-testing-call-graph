@@ -5,11 +5,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1743369606,
-        "narHash": "sha256-eg4mHYymNA5My4Fcp0L0XAn1PCwyObjbOItjsNgJcBk=",
+        "lastModified": 1748425022,
+        "narHash": "sha256-londLsObivyBop8XJ/G9AaWIFl/s9aNEhSMMT2B6/N0=",
         "ref": "refs/heads/feat/split_stack_mem",
-        "rev": "522af74c13ae65353c0cd1ef226eda4e944bf6fa",
-        "revCount": 613,
+        "rev": "a4407a1b5129b5bdc292d661fc38c748b60cf53f",
+        "revCount": 662,
         "type": "git",
         "url": "file:///home/jabbi/Projects/masterarbeit/cwe_checker"
       },
@@ -36,11 +36,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1743590148,
-        "narHash": "sha256-Jp5RyvC6Wel7WfSjTi+pjIkufrSc/96L/1IFjrRdqiI=",
+        "lastModified": 1748425020,
+        "narHash": "sha256-JypfLng0mPEQEdXeusujSA2PzRjIkbUQiV/ZkWu147w=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "c509a0d7a8e76c8314f5806b857c35af28a44e9b",
+        "rev": "44dec8ff9c3868fb1438f6a2fdac1c1d96380520",
         "type": "github"
       },
       "original": {

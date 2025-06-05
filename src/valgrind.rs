@@ -43,28 +43,7 @@ impl ValgrindResult {
     }
 }
 
-pub async fn run_valgrind(binary: &PathBuf, output_file: &PathBuf) -> ValgrindResult {
-    let output_file_arg = format!("--callgrind-out-file={}", output_file.to_str().unwrap());
-    let mut child = Command::new("valgrind")
-        .args(["--tool=callgrind", "--dump-instr=yes", &output_file_arg, "--collect-jumps=yes", binary.to_str().unwrap()])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .unwrap();
-
-    // Timeout after 20 seconds
-    let reached_timeout = timeout(Duration::from_secs(10),child.wait()).await.is_err();
-    if reached_timeout {
-        if let Some(pid) = child.id() {
-            // If the child hasn't already completed, send a SIGTERM.
-            if let Err(e) = kill(Pid::from_raw(pid.try_into().expect("Invalid PID")), SIGTERM) {
-                eprintln!("Failed to forward SIGTERM to child process: {}", e);
-            }
-        }
-        // Wait to get the child's exit code.
-        let _ignore = child.wait().await;
-    }
-
+pub fn analyze_valgrind(output_file: &PathBuf) -> ValgrindResult {
     let mut base_address_mapping = HashMap::new();
 
 
@@ -126,6 +105,32 @@ pub async fn run_valgrind(binary: &PathBuf, output_file: &PathBuf) -> ValgrindRe
     ValgrindResult {
         calls, valgrind_name_cache, base_address_mapping
     }
+
+}
+
+pub async fn run_valgrind(binary: &PathBuf, output_file: &PathBuf) -> ValgrindResult {
+    let output_file_arg = format!("--callgrind-out-file={}", output_file.to_str().unwrap());
+    let mut child = Command::new("valgrind")
+        .args(["--tool=callgrind", "--dump-instr=yes", &output_file_arg, "--collect-jumps=yes", binary.to_str().unwrap()])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+
+    // Timeout after 20 seconds
+    let reached_timeout = timeout(Duration::from_secs(10),child.wait()).await.is_err();
+    if reached_timeout {
+        if let Some(pid) = child.id() {
+            // If the child hasn't already completed, send a SIGTERM.
+            if let Err(e) = kill(Pid::from_raw(pid.try_into().expect("Invalid PID")), SIGTERM) {
+                eprintln!("Failed to forward SIGTERM to child process: {}", e);
+            }
+        }
+        // Wait to get the child's exit code.
+        let _ignore = child.wait().await;
+    }
+
+    analyze_valgrind(output_file)
 }
 
 #[derive(Eq, PartialEq, Debug, Clone)]

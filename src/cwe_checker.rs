@@ -1,10 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
-    fmt::write,
-    fs::{self, File},
-    io::{BufRead, BufReader, Write},
-    path::{Path, PathBuf},
-    process::{Command, Stdio},
+    collections::{HashMap, HashSet}, fs::{self, File}, io::{BufRead, BufReader, Write}, path::{Path, PathBuf}, process::{Command, Stdio}
 };
 
 use serde::{Deserialize, Serialize};
@@ -87,15 +82,17 @@ pub fn complete_analysis(binary: &PathBuf) -> CweCheckerResult {
     fs::create_dir_all(output_folder).expect("Could not create output folder");
     let output_file = output_folder.join(Path::new(file_name_str));
     run_cwe_checker(binary, &output_file);
-    get_analysis_results(&output_file)
+    get_analysis_results(&output_file).unwrap()
 }
 
-pub fn get_analysis_results(report: &PathBuf) -> CweCheckerResult {
+pub fn get_analysis_results(report: &PathBuf) -> Option<CweCheckerResult> {
     let content = fs::read_to_string(report).unwrap();
     // Skip debug log. This is take the second last elemtn
-    let content = content.split('\n').rev().take(2).last().unwrap();
+    let Some(content) = content.split('\n').rev().find(|line| line.contains("{\"metadata\":")) else {
+        return None;
+    };
     let callgraph: ExportCallGraph = serde_json::from_str(&content).expect("JSON is bad");
-    CweCheckerResult::from_export_call_graph(callgraph)
+    Some(CweCheckerResult::from_export_call_graph(callgraph))
 }
 
 pub fn run_cwe_checker(binary: &PathBuf, output_file: &PathBuf) {
